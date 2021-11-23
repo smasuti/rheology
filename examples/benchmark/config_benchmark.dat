@@ -1,0 +1,7 @@
+#n T(K)  s(MPa)P(MPa)                         file e(1/s)  strain
+ 1 1673      00   300      benchmark_1673_1e4.dat  1.00e-4      0
+ 2 1673      00   300      benchmark_1673_1e5.dat  1.00e-5      0
+ 3 1473      00   300      benchmark_1473_1e5.dat  1.00e-5      0
+ 4 1483      00   300      benchmark_1483_3e5.dat  3.00e-5      0
+ 5 1553      00   300      benchmark_1553_6e5.dat  6.00e-5      0
+ 6 1573      00   300      benchmark_1573_1e5.dat  1.00e-5      0

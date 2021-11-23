@@ -1,0 +1,11 @@
+results/*
+results
+build
+build/*
+scripts/*
+fortran/slice/*
+.DS_Store
+*.pdf
+*.eps
+*.mat
+
