@@ -1,4 +1,4 @@
-This is repository for fitting the stress vs strain curves using MCMC method. 
+This is repository for inverting the stress vs strain curves using MCMC method. 
 Current implementation includes Gibbs sampling. Gibbs sampling works with and 
 without MPI parallelism.
 
