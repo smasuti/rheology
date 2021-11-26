@@ -98,6 +98,16 @@ CONTAINS
       CALL getdata(iunit,dataline)
       READ (dataline,'(a)') configfile
       PRINT '(a)', trim(configfile)
+      
+      PRINT '("# location of the stress vs. strain data")'
+      CALL getdata(iunit,dataline)
+      READ (dataline,'(a)') config%datadir 
+      PRINT '(a)', trim(config%datadir)
+
+      PRINT '("# steady-state parameters (A, E, and n)")'
+      CALL getdata(iunit,dataline)
+      READ (dataline,*,IOSTAT=ierr) config%ss_a,config%ss_q,config%ss_n
+      PRINT '(3ES9.2E1)', config%ss_a,config%ss_q,config%ss_n 
 
       CLOSE(iunit)
 
@@ -221,7 +231,7 @@ CONTAINS
      IF (iostatus>0) STOP "could not allocate data"
 
      DO j=1,config%n
-        filename="./"//config%exps(j)%filename
+        filename=TRIM(config%datadir)// "/" //config%exps(j)%filename
 
         file_exists=.FALSE.
         INQUIRE (FILE=filename,EXIST=file_exists)

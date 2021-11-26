@@ -297,10 +297,14 @@ CONTAINS
       nk=m(3)
       Ek=m(4)
       G=m(5)
+      IF (config%ss_a .GT. 0) THEN
+         A=10**config%ss_a
+      ELSE
+         A=m(6)
+      END IF
 
-      A=10**4.48
-      nexp=3.58
-      E=533.5e3
+      nexp=config%ss_n
+      E=config%ss_q
 
       c1=exp(-(E)/(R*T));
       c2=exp(-(Ek)/(R*T));

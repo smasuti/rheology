@@ -19,4 +19,9 @@ mpirun -n 2 rheology << EOF | tee out.dat
 1000
 # location of config file
 ./config_benchmark.dat
+# data directory
+./data
+# Steady-state parameters (A, E and n)
+# A-pre-exponentail factor (log10(A)), E-activation energy and n-stress exponent
+4.48 535e3 3.6
 EOF

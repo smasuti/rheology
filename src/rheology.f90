@@ -201,6 +201,15 @@ CONTAINS
       READ (dataline,'(a)') configfile 
       PRINT '(a)', trim(configfile)
 
+      PRINT '("# location of the stress vs. strain data")'
+      CALL getdata(iunit,dataline)
+      READ (dataline,'(a)') config%datadir 
+      PRINT '(a)', trim(config%datadir)
+
+      PRINT '("# steady-state parameters (A, E, and n)")'
+      CALL getdata(iunit,dataline)
+      READ (dataline,*,IOSTAT=ierr) config%ss_a,config%ss_q,config%ss_n
+      PRINT '(3ES9.2E1)', config%ss_a,config%ss_q,config%ss_n 
       CLOSE(iunit)
          
       ! Get the number of lines in the file 
@@ -228,9 +237,13 @@ CONTAINS
          position=0
          CALL MPI_PACK(config%interval,1,MPI_REAL8,packed,psize,position,MPI_COMM_WORLD,ierr)
          CALL MPI_PACK(config%n,1,MPI_INTEGER,packed,psize,position,MPI_COMM_WORLD,ierr)
+         CALL MPI_PACK(config%ss_a,1,MPI_REAL8,packed,psize,position,MPI_COMM_WORLD,ierr)
+         CALL MPI_PACK(config%ss_q,1,MPI_REAL8,packed,psize,position,MPI_COMM_WORLD,ierr)
+         CALL MPI_PACK(config%ss_n,1,MPI_REAL8,packed,psize,position,MPI_COMM_WORLD,ierr)
          CALL MPI_PACK(config%sample_param%nd,1,MPI_INTEGER,packed,psize,position,MPI_COMM_WORLD,ierr)
          CALL MPI_PACK(config%sample_param%ncond,1,MPI_INTEGER,packed,psize,position,MPI_COMM_WORLD,ierr)
          CALL MPI_PACK(config%sample_param%nsamples,1,MPI_INTEGER,packed,psize,position,MPI_COMM_WORLD,ierr)
+         CALL MPI_PACK(config%datadir,256,MPI_CHAR,packed,psize,position,MPI_COMM_WORLD,ierr)
          CALL MPI_BCAST(packed,psize,MPI_PACKED,0,MPI_COMM_WORLD,ierr)
 
          ! send sampler configuration 
@@ -260,9 +273,13 @@ CONTAINS
          CALL MPI_BCAST(packed,psize,MPI_PACKED,0,MPI_COMM_WORLD,ierr)
          CALL MPI_UNPACK(packed,psize,position,config%interval,1,MPI_REAL8,MPI_COMM_WORLD,ierr)
          CALL MPI_UNPACK(packed,psize,position,config%n,1,MPI_INTEGER,MPI_COMM_WORLD,ierr)
+         CALL MPI_UNPACK(packed,psize,position,config%ss_a,1,MPI_REAL8,MPI_COMM_WORLD,ierr)
+         CALL MPI_UNPACK(packed,psize,position,config%ss_q,1,MPI_REAL8,MPI_COMM_WORLD,ierr)
+         CALL MPI_UNPACK(packed,psize,position,config%ss_n,1,MPI_REAL8,MPI_COMM_WORLD,ierr)
          CALL MPI_UNPACK(packed,psize,position,config%sample_param%nd,1,MPI_INTEGER,MPI_COMM_WORLD,ierr)
          CALL MPI_UNPACK(packed,psize,position,config%sample_param%ncond,1,MPI_INTEGER,MPI_COMM_WORLD,ierr)
          CALL MPI_UNPACK(packed,psize,position,config%sample_param%nsamples,1,MPI_INTEGER,MPI_COMM_WORLD,ierr)
+         CALL MPI_UNPACK(packed,psize,position,config%datadir,256,MPI_CHAR,MPI_COMM_WORLD,ierr)
 
 
          IF (config%sample_param%nd .gt. 0) THEN
@@ -400,7 +417,7 @@ CONTAINS
      IF (iostatus>0) STOP "could not allocate data"
 
      DO j=1,config%n
-        filename="./"//config%exps(j)%filename
+        filename=TRIM(config%datadir)// "/" //config%exps(j)%filename
 
         file_exists=.FALSE.
         INQUIRE (FILE=filename,EXIST=file_exists)

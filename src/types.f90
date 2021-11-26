@@ -98,6 +98,8 @@ MODULE types
      ! simulation time
      REAL*8 :: interval
 
+     ! steady-state parameters
+     REAL*8 :: ss_a, ss_q,ss_n  
      ! random seed
      INTEGER :: iseed
 
@@ -106,6 +108,9 @@ MODULE types
 
      ! covariance matrix
      REAL*8 :: cm(6)
+
+     ! data dir
+     CHARACTER(256) :: datadir 
 
      TYPE(EXPERIMENT_STRUCT), DIMENSION(:), ALLOCATABLE :: exps 
 
