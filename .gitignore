@@ -1,5 +1,7 @@
 results/*
 results
+examples/*
+examples/
 build
 build/*
 scripts/*
