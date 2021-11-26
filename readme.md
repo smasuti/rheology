@@ -12,9 +12,8 @@ In order to compile the code you will need gfortran and mpif90. If you do not
 want to use the MPI then consider replacing the mpif90 with gfortran or suitable
 compiler. The code is mainly tested on MacOS, but can be easily compiled on 
 Windows if the suitable libraries and compilers are installed. Once successfully
-compiler, you can run the following command: 
-
-Go to the examples directory and execute the bash script to get started.
+compiled, you can go to the examples directory and execute the bash script to 
+get started.
 
 Make sure to write the config file correctly and keep all the data in the same 
 directory. Best place to start would be to familiarise with benchmark example.
