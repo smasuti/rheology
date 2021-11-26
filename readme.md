@@ -5,8 +5,8 @@ without MPI parallelism.
 There are two flags to control the usage of MPI (USE_MPI) and the method of numerical 
 integration (PEC), which can be enabled/disabled in src/include.f90. The code is 
 mainly tested with PEC (predictor-corrector method). If you use Runge-Kutta method,
-you may come across the error of step size being too small.Currently only nonlinear 
-Burgers model is implemeted. The user is free to implement their own model.
+you may come across the error of step size being too small. Currently only nonlinear 
+Burgers model is implemeted.
 
 In order to compile the code you will need gfortran and mpif90. If you do not 
 want to use the MPI then consider replacing the mpif90 with gfortran or suitable
