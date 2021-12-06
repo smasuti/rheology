@@ -2,6 +2,8 @@ results/*
 results
 examples/*
 examples/
+util/*
+util
 build
 build/*
 scripts/*

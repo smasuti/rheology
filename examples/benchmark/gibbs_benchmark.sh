@@ -16,7 +16,7 @@ mpirun -n 2 rheology << EOF | tee out.dat
 # Number of samples 
 200000
 # Conditionals to be evaluated in each dimension 
-1000
+10
 # location of config file
 ./config_benchmark.dat
 # data directory

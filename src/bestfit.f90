@@ -4,13 +4,16 @@ PROGRAM bestfit
 #include "macros.f90"
 #include "include.f90"
 
-   USE heap 
    USE ode
    USE types
    USE forward
 
+   IMPLICIT NONE
+     
+   TYPE(CONFIG_STRUCT) :: config 
+
    REAL*8 :: chisquare
-   INTEGER :: ierr
+   INTEGER :: i,ierr
    REAL*8, DIMENSION(5) :: m
    CHARACTER(256) :: dataline,filename
    INTEGER :: iunit,nd

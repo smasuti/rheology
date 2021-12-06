@@ -123,7 +123,7 @@ CONTAINS
 #else
             CALL forward_constant_strain_rate(config,chisquare,nd,m)
 #endif
-         PRINT '("Sample and misfit: ",I7," ",6ES10.3E2)',i,m,chisquare
+         PRINT '("Sample and misfit: ",I7," ",7ES10.3E2)',i,m,chisquare
          CALL FLUSH(STDOUT)
 #ifdef USE_MPI
          END IF

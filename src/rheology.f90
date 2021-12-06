@@ -16,17 +16,18 @@
 ! You should have received a copy of the GNU General Public License
 ! along with RHEOLOGY.  If not, see <http://www.gnu.org/licenses/>.
 ! 
-! ---------
-!  RHEOLOGY
-! ---------
-!> program Rheology simulates evolution strain for a point source for olivine 
-!! using a nonlinear Burgers type rheology. The fit to the parameters can be 
-!! obtained using Gibbs sampling.
+! ---------------------------------------------------------------------
+!                              RHEOLOGY
+! ---------------------------------------------------------------------
+!> program Rheology simulates evolution strain for a point source for 
+!! olivine using a nonlinear Burgers type rheology. The flow law paramters
+!! are obtained using the MCMC/Bayesian technique.
 !!
 !! \mainpage
 !!
-!! The time evolution is evaluated numerically using the predictor-corrector method
-!! and 4th/5th order Runge-Kutta method with adaptive time steps. The state vector is
+!! The time evolution can be evaluated numerically using either the 
+!! predictor-corrector method with fixed step size or the 4th/5th order 
+!! Runge-Kutta method with adaptive time steps. The state vector is
 !! as follows:
 !!
 !!    / \sigma     \
@@ -34,13 +35,14 @@
 !!   |  \epsilon_k  |
 !!    \ \epsilon   /
 !!
-!! where \sigma is the total stress in the system, \epsilon_m, \epsilon_k, and 
-!! \epsilon are the strains in Maxwell element, Kelvin element, total strain. 
+!! where \sigma is the total stress in the system, \epsilon_m, \epsilon_k, 
+!! and \epsilon are the strains in Maxwell element, Kelvin element, 
+!! total strain. 
 !! 
-!! The MCMC sampling technique can be used are Gibbs sampling. The code is 
-!! implemented using MPI (Message Passing Interface) and highly scalable. However,
-!! scalability is limited to the number of conditional evaluations. As per the 
-!! number of total samples to be drawn are done in serial manner. 
+!! The MCMC sampling technique used here is Gibbs sampling. The code is 
+!! implemented using MPI (Message Passing Interface) and highly scalable. 
+!! However, scalability is limited to the number of conditional evaluations 
+!! in each dimension. 
 !!
 !! \author Sagar Masuti (2018).
 !----------------------------------------------------------------------
@@ -60,7 +62,7 @@ PROGRAM rheology
    TYPE(CONFIG_STRUCT) :: config 
    REAL*8 :: mis
    INTEGER :: ierr,i
-   REAL*8, DIMENSION(2) :: m
+   REAL*8, DIMENSION(:), ALLOCATABLE :: m
    INTEGER :: dims
 
 #ifdef USE_MPI
@@ -81,9 +83,12 @@ PROGRAM rheology
    IF (ierr>0) STOP "could not allocate the AK1-6 work space"
 
    config%interval=1e5
-   CALL read_config(config)    
+   CALL read_config(config)
    CALL FLUSH(STDOUT)
-
+   
+   ALLOCATE (m(config%sample_param%nd),STAT=ierr) 
+   IF (ierr>0) STOP "could not allocate to m"
+   
 #ifdef USE_MPI
    IF (0 .EQ. iproc) THEN
 #endif 
@@ -107,7 +112,7 @@ PROGRAM rheology
    END DO
    IF (ALLOCATED(config%d)) DEALLOCATE(config%d)
 
-   DEALLOCATE(AK2,AK3,AK4,AK5,AK6,config%sample_param%m0,config%sample_param%bounds)
+   DEALLOCATE(m,AK2,AK3,AK4,AK5,AK6,config%sample_param%m0,config%sample_param%bounds)
 
 #ifdef USE_MPI   
    CALL MPI_FINALIZE(ierr)
@@ -115,18 +120,17 @@ PROGRAM rheology
 
 CONTAINS 
 
-  !-----------------------------------------------------------------------
-  !> subroutine read_config 
-  ! Reads the configuration file in data directory and the associated data 
-  !
-  ! INPUT:
-  ! @param config - pointer to the config file which needs to be filled. 
-  !
-  !----------------------------------------------------------------------
+   !-----------------------------------------------------------------------
+   !> subroutine read_config 
+   ! Reads the configuration file in data directory and the associated data 
+   !
+   ! INPUT:
+   ! @param config - pointer to the config file which needs to be filled. 
+   !
+   !----------------------------------------------------------------------
    SUBROUTINE read_config(config)
    
       USE types
-      USE getopt_m
       USE sampler
 
       IMPLICIT NONE 
@@ -136,7 +140,6 @@ CONTAINS
       CHARACTER :: ch
       CHARACTER(256) :: dataline,filename,configfile
       INTEGER :: iunit,noptions
-      TYPE(OPTION_S) :: opts(2)
 
       INTEGER :: i,ierr,k,iostatus,nolines
       INTEGER :: dummy
@@ -208,8 +211,9 @@ CONTAINS
 
       PRINT '("# steady-state parameters (A, E, and n)")'
       CALL getdata(iunit,dataline)
-      READ (dataline,*,IOSTAT=ierr) config%ss_a,config%ss_q,config%ss_n
-      PRINT '(3ES9.2E1)', config%ss_a,config%ss_q,config%ss_n 
+      READ (dataline,*) config%ss_a,config%ss_q,config%ss_n
+      PRINT '(3ES10.2)', config%ss_a,config%ss_q,config%ss_n 
+
       CLOSE(iunit)
          
       ! Get the number of lines in the file 
@@ -219,6 +223,7 @@ CONTAINS
       OPEN (UNIT=iunit,FILE=trim(configfile),IOSTAT=iostatus)
 
       ALLOCATE(config%exps(nolines),STAT=iostatus)
+      IF (ierr>0) STOP "could not allocate exps in config"
    
       PRINT '("#n         T   stress pressure  e_d(1/s)    in_e filename")'
       DO i=1,nolines
@@ -390,7 +395,7 @@ CONTAINS
    !--------------------------------------------------------------------------!
    ! readobs : Reads observations
    ! Input : Input file with the data.
-   ! Output: Reads the data into actd
+   ! Output: Reads the data into config%d
    !--------------------------------------------------------------------------!
    SUBROUTINE readobs(config)
 

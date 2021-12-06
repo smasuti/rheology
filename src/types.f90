@@ -100,6 +100,7 @@ MODULE types
 
      ! steady-state parameters
      REAL*8 :: ss_a, ss_q,ss_n  
+
      ! random seed
      INTEGER :: iseed
 

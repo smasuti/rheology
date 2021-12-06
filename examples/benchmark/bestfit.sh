@@ -10,8 +10,8 @@ bestfit << EOF | tee out.dat
 5
 # model parameters
 1.0e5
-40e3
-3.0
+30e3
+2.0
 400e3
 30e3
 # location of config file

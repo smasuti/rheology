@@ -26,7 +26,7 @@ OBJRS=$(SRC)/macros.f90 $(patsubst %,$(DST)/%, types.o \
       rheology.o )
 
 OBJRS_BESTFIT=$(SRC)/macros.f90 $(patsubst %,$(DST)/%, types.o \
-      getopt_m.o getdata.o heap.o ode.o forward.o interp1.o\
+      getopt_m.o getdata.o ode.o forward.o interp1.o\
       bestfit.o )
 
 $(DST)/%.o:$(SRC)/%.c

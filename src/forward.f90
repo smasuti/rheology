@@ -24,10 +24,7 @@ MODULE forward
 
    USE types 
    USE ode
-
-#ifdef USE_BESTFIT 
-   USE heap 
-#endif 
+   USE, INTRINSIC :: IEEE_ARITHMETIC
 
    IMPLICIT NONE 
 
@@ -85,6 +82,7 @@ CONTAINS
 
          CALL ode_solver(config,i,dpre,dims,m,epsilonik,epsilonim,y0)
 
+         !PRINT *, 'n: ',config%d(i)%n
          ALLOCATE(pre%stress(config%d(i)%n),STAT=ierr)
          IF (ierr>0) STOP "could not allocate pre"
 
@@ -159,20 +157,16 @@ CONTAINS
       REAL*8, DIMENSION(STATE_VECTOR_DGF) :: ytmp,ytmp1,ytmp2,ytmp3
 
       ! time
-      REAL*8 :: time,t0
-      ! time step
-      REAL*8 :: dt_try,dt_next,dt_done
-      ! time steps
-      INTEGER :: i,j
+      REAL*8 :: time,t0,dt_try,dt_next,dt_done
       
-      REAL*8, DIMENSION(40000) :: simstrain
-      REAL*8, DIMENSION(40000) :: simstress
-      REAL*8, DIMENSION(40000) :: simepsilonik
-      REAL*8, DIMENSION(40000) :: simepsilonim
+      INTEGER :: i
+      
+      REAL*8, DIMENSION(:), ALLOCATABLE :: simepsilonik
 
       ! maximum number of time steps (default)
       INTEGER :: maximumIterations
    
+
       ! initialize the y vector
       CALL initStateVector(STATE_VECTOR_DGF,y,y0)
 
@@ -183,6 +177,12 @@ CONTAINS
 
       maximumIterations=NINT((config%d(ind)%strain(config%d(ind)%n)-config%d(ind)%strain(1))/config%exps(ind)%strain_rate)
       maximumIterations=maximumIterations*2
+
+      dpre%n=maximumIterations
+      ALLOCATE(dpre%strain(maximumIterations),  &
+               dpre%stress(maximumIterations),  &
+               simepsilonik(maximumIterations),STAT=ierr)
+      IF (ierr>0) STOP "could not allocate dpre and simepsilonik"
 
       DO i=1,maximumIterations
          t0=0.d0
@@ -199,43 +199,30 @@ CONTAINS
          CALL RKQSm(STATE_VECTOR_DGF,t0,y,dydt, &
                     yscal,ytmp1,ytmp2,ytmp3,dt_try,&
                     dt_done,dt_next,odefun,config,ind,dims,m)
-#endif
-         time=time+dt_done
-
-         simstress(i)=y(STATE_VECTOR_STRESS)
-         simstrain(i)=y(STATE_VECTOR_TSTRAIN)
-         simepsilonik(i)=y(STATE_VECTOR_KELVIN)
-         simepsilonim(i)=y(STATE_VECTOR_MAXWELL)
          IF (config%interval .LE. time) THEN
             EXIT
          END IF
+#endif
+         time=time+dt_done
+         dpre%strain(i)=y(STATE_VECTOR_TSTRAIN)
+         dpre%stress(i)=y(STATE_VECTOR_STRESS)
+         simepsilonik(i)=y(STATE_VECTOR_KELVIN)
      END DO
 
      IF (ind+1 .LE. config%n) THEN
         IF(config%exps(ind+1)%instrain .NE. 0._8) THEN
            IF (config%exps(ind+1)%sigma .LT. (config%d(ind)%stress(config%d(ind)%n)-10)) THEN 
-               CALL interp1(i-1,simstress,simepsilonik,1, &
+               CALL interp1(i-1,dpre%stress,simepsilonik,1, &
                             config%exps(ind+1)%sigma,epsilonik)     
-               CALL interp1(i-1,simstress,simepsilonim,1, &
-                            config%exps(ind+1)%sigma,epsilonim)     
            ELSE
                epsilonik=simepsilonik(i-1)
-               epsilonim=simepsilonim(i-1)
            END IF
         ELSE 
            epsilonik=0._8
-           epsilonim=0._8
         END IF
      END IF
 
-     dpre%n=i-1
-     ALLOCATE(dpre%strain(i-1),dpre%stress(i-1),STAT=ierr)
-     IF (ierr>0) STOP "could not allocate dpre"
-     
-     DO j=1,i-1
-         dpre%strain(j)=simstrain(j)
-         dpre%stress(j)=simstress(j)
-     END DO
+     DEALLOCATE(simepsilonik)
 
    END SUBROUTINE 
 
@@ -303,8 +290,17 @@ CONTAINS
          A=m(6)
       END IF
 
-      nexp=config%ss_n
-      E=config%ss_q
+      IF (config%ss_q .GT. 0) THEN
+         E=config%ss_q
+      ELSE
+         E=m(7)
+      END IF
+      
+      IF (config%ss_n .GT. 0) THEN
+         nexp=config%ss_n
+      ELSE
+         nexp=m(8)
+      END IF
 
       c1=exp(-(E)/(R*T));
       c2=exp(-(Ek)/(R*T));
@@ -321,6 +317,4 @@ CONTAINS
       dydt(STATE_VECTOR_TSTRAIN)=epsdot
  
    END SUBROUTINE 
-
 END MODULE 
-! End of file
