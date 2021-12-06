@@ -56,6 +56,8 @@ CONTAINS
       REAL*8, DIMENSION(:), ALLOCATABLE :: ncondsamples
       REAL*8, DIMENSION(:,:), ALLOCATABLE :: bounds
       REAL*8 :: m(config%sample_param%nd)
+      CHARACTER(LEN=256) :: FMTSTMT
+      CHARACTER(LEN=10) :: ndstr
 
 #ifdef USE_MPI
       INTEGER :: ii,iproc
@@ -81,6 +83,11 @@ CONTAINS
       ncond=config%sample_param%ncond
       nsamples=config%sample_param%nsamples
       bounds=config%sample_param%bounds
+
+      ! format string for the output
+      WRITE(ndstr,'(I2,a)') nd+1,"ES10.3E2"
+      FMTSTMT='("Sample and misfit: ", I7,'
+      FMTSTMT=trim(FMTSTMT) // trim(ndstr) // ')'
       
       ALLOCATE(residual(ncond),STAT=ierr)
       IF (ierr>0) STOP "could not allocate residual"
@@ -123,7 +130,7 @@ CONTAINS
 #else
             CALL forward_constant_strain_rate(config,chisquare,nd,m)
 #endif
-         PRINT '("Sample and misfit: ",I7," ",7ES10.3E2)',i,m,chisquare
+         PRINT FMTSTMT,i,m,chisquare
          CALL FLUSH(STDOUT)
 #ifdef USE_MPI
          END IF
